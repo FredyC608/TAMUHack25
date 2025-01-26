@@ -1,31 +1,36 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
+import openai
 
-model = AutoModelForCausalLM.from_pretrained("AdaptLLM/finance-chat")
-tokenizer = AutoTokenizer.from_pretrained("AdaptLLM/finance-chat")
+def chatbot():
+    # Replace 'your-api-key-here' with your OpenAI API key
+    openai.api_key = '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'
 
-# Put your input here:
-user_input = '''Use this fact to answer the question: Title of each class Trading Symbol(s) Name of each exchange on which registered
-Common Stock, Par Value $.01 Per Share MMM New York Stock Exchange
-MMM Chicago Stock Exchange, Inc.
-1.500% Notes due 2026 MMM26 New York Stock Exchange
-1.750% Notes due 2030 MMM30 New York Stock Exchange
-1.500% Notes due 2031 MMM31 New York Stock Exchange
+    print("Welcome to ChatGPT! Type 'exit' to end the chat.")
 
-Which debt securities are registered to trade on a national securities exchange under 3M's name as of Q2 of 2023?'''
+    while True:
+        # Get user input
+        user_input = input("You: ")
 
-# Apply the prompt template and system prompt of LLaMA-2-Chat demo for chat models (NOTE: NO prompt template is required for base models!)
-our_system_prompt = "\nYou are a helpful, respectful and honest assistant. Always answer as helpfully as possible, while being safe.  Your answers should not include any harmful, unethical, racist, sexist, toxic, dangerous, or illegal content. Please ensure that your responses are socially unbiased and positive in nature.\n\nIf a question does not make any sense, or is not factually coherent, explain why instead of answering something not correct. If you don't know the answer to a question, please don't share false information.\n" # Please do NOT change this
-prompt = f"<s>[INST] <<SYS>>{our_system_prompt}<</SYS>>\n\n{user_input} [/INST]"
+        # Exit condition
+        if user_input.lower() == 'exit':
+            print("Chatbot: Goodbye!")
+            break
 
-# # NOTE:
-# # If you want to apply your own system prompt, please integrate it into the instruction part following our system prompt like this:
-# your_system_prompt = "Please, check if the answer can be inferred from the pieces of context provided."
-# prompt = f"<s>[INST] <<SYS>>{our_system_prompt}<</SYS>>\n\n{your_system_prompt}\n{user_input} [/INST]"
+        try:
+            # Send user input to OpenAI's GPT-4
+            response = openai.chat.completions.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a helpful chatbot."},
+                    {"role": "user", "content": user_input}
+                ]
+            )
 
-inputs = tokenizer(prompt, return_tensors="pt", add_special_tokens=False).input_ids.to(model.device)
-outputs = model.generate(input_ids=inputs, max_length=4096)[0]
+            # Get the chatbot's reply
+            chatbot_reply = response['choices'][0]['message']['content']
 
-answer_start = int(inputs.shape[-1])
-pred = tokenizer.decode(outputs[answer_start:], skip_special_tokens=True)
+            print(f"Chatbot: {chatbot_reply}")
+        except Exception as e:
+            print(f"Error: {e}")
 
-print(pred)
+if __name__ == "__main__":
+    chatbot()
